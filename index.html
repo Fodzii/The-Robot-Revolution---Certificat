@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#003b6f">
+  <title>The Robot Revolution - Certificat</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tardis-blue: #003b6f;
+      --tardis-light: #05c3de;
+      --gold: #dec49f;
+      --dark: #111827;
+    }
+    
+    body { 
+      font-family: 'Rajdhani', sans-serif;
+      background-color: var(--dark);
+      color: white;
+      text-align: center; 
+      margin: 0; 
+      padding: 20px;
+
+      background-position: center;
+      background-attachment: fixed;
+      background-size: cover;
+      position: relative;
+    }
+    
+    body::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(17, 24, 39, 0.85);
+      z-index: -1;
+    }
+    
+    #app { 
+      max-width: 900px; 
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+      padding: 30px;
+      border-radius: 12px;
+      background: rgba(0, 59, 111, 0.3);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(5, 195, 222, 0.15);
+    }
+    
+    h1 { 
+      color: var(--tardis-light); 
+      font-size: 2.5rem;
+      text-shadow: 0 0 10px rgba(5, 195, 222, 0.7);
+      margin-bottom: 30px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    
+    canvas { 
+      max-width: 100%; 
+      height: auto; 
+      border: 2px solid var(--tardis-light);
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(5, 195, 222, 0.4);
+    }
+    
+    .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    input { 
+      padding: 12px 20px;
+      font-size: 18px; 
+      width: 300px; 
+      margin: 15px 0;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid var(--tardis-light);
+      border-radius: 50px;
+      color: white;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 500;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    input:focus {
+      outline: none;
+      box-shadow: 0 0 15px rgba(5, 195, 222, 0.6);
+      background: rgba(255,255,255,0.15);
+    }
+    
+    button { 
+      padding: 12px 30px; 
+      font-size: 18px; 
+      background: linear-gradient(135deg, var(--tardis-blue) 0%, var(--tardis-light) 100%);
+      color: white; 
+      border: none;
+      border-radius: 50px;
+      cursor: pointer; 
+      margin: 15px 0;
+      /*text-transform: uppercase;*/
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(5, 195, 222, 0.4);
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(5, 195, 222, 0.6);
+    }
+    
+    button:disabled { 
+      background: #2c3749;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+    
+    .loading {
+      margin: 15px 0;
+      color: var(--tardis-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .loading::before {
+      content: '';
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(5, 195, 222, 0.3);
+      border-top: 3px solid var(--tardis-light);
+      border-radius: 50%;
+      margin-right: 10px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .footer {
+      margin-top: 20px;
+      color: var(--gold);
+      font-size: 14px;
+      opacity: 0.7;
+    }
+    
+    @media (max-width: 768px) {
+      h1 { font-size: 1.8rem; }
+      input { width: 80%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>'THE ROBOT REVOLUTION' STAR CERTIFICATE</h1>
+    
+    <div class="controls">
+      <input type="text" v-model="prenom" placeholder="Entrez votre nom de compagnon" />
+      <button @click="telechargerImage" :disabled="!prenom.trim()">
+        Télécharger votre certificat
+      </button>
+      <div v-if="chargement" class="loading">Préparation du TARDIS...</div>
+    </div>
+    
+    <canvas ref="canvas" :width="800" :height="600"></canvas>
+    
+    <p class="footer">Certifié par les Seigneurs du Temps</p>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        prenom: '',
+        imageSrc: 'https://cms.doctorwho.tv/sites/default/files/2025-04/BBC_DW_S2_StarDiploma_CMYK-d7ab041c60.jpg',
+        chargement: true
+      },
+      mounted() {
+        this.prechargerImage();
+      },
+      watch: {
+        prenom() {
+          if (this.imageChargee) this.dessinerImage();
+        }
+      },
+      methods: {
+        prechargerImage() {
+          const image = new Image();
+          image.crossOrigin = "anonymous"; // Ajouter cette ligne pour demander les autorisations CORS
+          
+          // Essayer d'abord avec le proxy CORS
+          image.src = this.imageSrcProxy;
+          
+          image.onerror = () => {
+            console.log("Erreur de chargement avec le proxy, tentative avec l'URL d'origine...");
+            const fallbackImage = new Image();
+            fallbackImage.src = this.imageSrc;
+            fallbackImage.onload = () => {
+              this.imageChargee = true;
+              this.chargement = false;
+              this.image = fallbackImage;
+              this.dessinerImage();
+            };
+            fallbackImage.onerror = () => {
+              console.error("Impossible de charger l'image");
+              this.chargement = false;
+              
+              // Créer une image de secours avec un fond bleu
+              const canvas = this.$refs.canvas;
+              const ctx = canvas.getContext('2d');
+              ctx.fillStyle = '#003b6f';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+            };
+          };
+          
+          image.onload = () => {
+            this.imageChargee = true;
+            this.chargement = false;
+            this.image = image;
+            this.dessinerImage();
+          };
+        },
+        dessinerImage() {
+          const canvas = this.$refs.canvas;
+          const ctx = canvas.getContext('2d');
+          
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(this.image, 0, 0, canvas.width, canvas.height);
+
+          if (this.prenom.trim()) {
+            ctx.font = 'bold 32px Rajdhani';
+            ctx.fillStyle = '#dec49f';
+            ctx.textAlign = 'center';
+            ctx.fillText(this.prenom, canvas.width / 2, canvas.height - 210);
+          }
+        },
+        telechargerImage() {
+          this.chargement = true;
+          setTimeout(() => {
+            const nomFichier = `doctorwho_${this.prenom.trim().replace(/\s+/g, '_')}.png`;
+            this.$refs.canvas.toBlob(blob => {
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.download = nomFichier;
+              link.href = url;
+              link.click();
+              URL.revokeObjectURL(url);
+              this.chargement = false;
+            }, 'image/png');
+          }, 600);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
